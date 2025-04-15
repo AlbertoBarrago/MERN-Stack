@@ -8,9 +8,9 @@ const options = {
         },
         servers: [
             {
-                url: process.env.NODE_ENV === 'production' 
+                url: process.env.NODE_ENV === 'production'
                     ? 'https://your-production-url.com'  // Replace with your production URL
-                    : 'http://localhost:5000',
+                    : 'http://localhost:5001',
                 description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server',
             },
         ],
@@ -71,11 +71,11 @@ const options = {
                                     type: 'object',
                                     required: ['email', 'password'],
                                     properties: {
-                                        email: { 
+                                        email: {
                                             type: 'string',
                                             example: 'user@example.com'
                                         },
-                                        password: { 
+                                        password: {
                                             type: 'string',
                                             example: 'yourpassword123'
                                         }
