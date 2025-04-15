@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -11,16 +11,8 @@ function Items() {
 
     const user = JSON.parse(localStorage.getItem('user'));
     const token = user?.token;
-
-    useEffect(() => {
-        if (!token) {
-            navigate('/login');
-            return;
-        }
-        fetchItems();
-    }, [token, navigate]);
-
-    const fetchItems = async () => {
+    // we use useCallback to avoid unnecessary re-renders of the fetchItems function
+    const fetchItems = useCallback(async () => {
         try {
             const config = {
                 headers: {
@@ -32,7 +24,16 @@ function Items() {
         } catch (error) {
             toast.error('Errore nel caricamento degli items');
         }
-    };
+    }, [token]);
+
+    useEffect(() => {
+        if (!token) {
+            navigate('/login');
+            return;
+        }
+        fetchItems();
+    }, [token, navigate, fetchItems]);
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -129,7 +130,7 @@ function Items() {
                         min="0"
                         step="0.01"
                         value={newItem.price}
-                        onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
+                        onChange={(e) => setNewItem({ ...newItem, price: parseFloat(e.target.value) })}
                         placeholder="Prezzo"
                         required
                     />
