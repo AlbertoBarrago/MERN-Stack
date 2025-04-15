@@ -61,7 +61,7 @@ A simple CRUD application built with the MERN stack (MongoDB, Express, React, No
    npm install
    ```
 
-3. Create a `.env` file in backend folders with the following variables:
+3. Create a `.env` file with the following variables:
    ```
    PORT=5000
    MONGO_URI=mongodb://localhost:27017/mern-blueprint
