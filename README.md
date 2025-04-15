@@ -21,8 +21,6 @@ A simple CRUD application built with the MERN stack (MongoDB, Express, React, No
 │   ├── src/           # React source code
 │   │   ├── components/# Reusable components
 │   │   ├── pages/     # Page components
-│   │   ├── services/  # API service calls
-│   │   ├── utils/     # Utility functions
 │   │   ├── App.js     # Main component
 │   │   └── index.js   # Entry point
 │   ├── .env           # Environment variables
