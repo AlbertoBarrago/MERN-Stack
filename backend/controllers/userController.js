@@ -127,9 +127,31 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     }
 });
 
+/**
+ * @desc    Get users from token
+ * @route   GET /api/users/token
+ * @access  Private
+ */
+const getUsersFromToken = asyncHandler(async (req, res) => {
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (user) {
+        res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+        });
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
+});
+
 module.exports = {
     registerUser,
     loginUser,
     getUserProfile,
     updateUserProfile,
+    getUsersFromToken,
 };

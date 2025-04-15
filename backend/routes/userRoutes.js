@@ -5,12 +5,14 @@ const {
     loginUser,
     getUserProfile,
     updateUserProfile,
+    getUsersFromToken,
 } = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
 
 // Public routes
 router.post('/', registerUser);
 router.post('/login', loginUser);
+router.get('/me', getUsersFromToken); // Public route to get user profile without authentication
 
 // Protected routes
 router.route('/profile')
