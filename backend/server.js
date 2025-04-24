@@ -12,7 +12,9 @@ const options = require('./swagger.js')
 dotenv.config({ path: __dirname + '/.env' });
 
 // Connect to database
-connectDB();
+connectDB().then(()=>{
+    console.log('Database connected');
+});
 
 const app = express();
 
@@ -63,3 +65,5 @@ const server = app.listen(PORT, () => {
         console.error('Server error:', err);
     }
 });
+
+module.exports = app;

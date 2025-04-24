@@ -21,7 +21,7 @@ const getItems = asyncHandler(async (req, res) => {
         filter.isAvailable = true;
     }
 
-    // Execute query with pagination
+    // Execute a query with pagination
     const items = await Item.find(filter)
         .skip(skip)
         .limit(limit)
@@ -132,7 +132,7 @@ const deleteItem = asyncHandler(async (req, res) => {
         throw new Error('Item not found');
     }
 
-    // Check if user is the item owner
+    // Check if the user is the item owner
     if (item.user.toString() !== req.user._id.toString()) {
         res.status(401);
         throw new Error('Not authorized to delete this item');

@@ -154,4 +154,5 @@ module.exports = {
     getUserProfile,
     updateUserProfile,
     getUsersFromToken,
+    generateToken
 };
