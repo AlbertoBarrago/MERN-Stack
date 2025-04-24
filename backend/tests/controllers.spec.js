@@ -1,5 +1,9 @@
 const itemController = require('../controllers/itemController');
+const userController = require("../controllers/userController");
 const Item = require('../models/itemModel');
+const User = require('../models/userModel');
+const jwt = require('jsonwebtoken');
+
 
 jest.mock('../models/itemModel', () => {
     const mockSort = jest.fn().mockResolvedValue([]);
@@ -18,6 +22,9 @@ jest.mock('../models/itemModel', () => {
         }
     };
 });
+
+jest.mock('jsonwebtoken');
+jest.mock('../models/userModel');
 
 
 describe('Item Controller', () => {
@@ -253,5 +260,419 @@ describe('Item Controller', () => {
         });
 
         // Add tests for item not found and unauthorized deletion
+    });
+});
+
+describe('User Controller', () => {
+    let req, res, next;
+    const userId = 'user123';
+    const mockToken = 'test-token';
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        // Set environment variable for JWT_SECRET and JWT_EXPIRE
+        process.env.JWT_SECRET = 'test_secret';
+        process.env.JWT_EXPIRE = '1d';
+
+        // Setup request, response and next objects
+        req = {
+            params: {},
+            body: {},
+            user: { _id: userId },
+            headers: {
+                authorization: `Bearer ${mockToken}`
+            }
+        };
+
+        res = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn()
+        };
+
+        next = jest.fn();
+
+        // Mock jwt.sign to return a fixed token
+        jwt.sign.mockReturnValue(mockToken);
+    });
+
+    describe('registerUser', () => {
+        it('should register a new user successfully', async () => {
+            // Arrange
+            const userData = {
+                name: 'Test User',
+                email: 'test@example.com',
+                password: 'password123'
+            };
+
+            req.body = userData;
+
+            const createdUser = {
+                _id: userId,
+                ...userData
+            };
+
+            User.findOne.mockResolvedValue(null); // User doesn't exist yet
+            User.create.mockResolvedValue(createdUser);
+
+
+            await userController.registerUser(req, res);
+
+
+            // Assert
+            expect(User.findOne).toHaveBeenCalledWith({ email: userData.email });
+            expect(User.create).toHaveBeenCalledWith(userData);
+            expect(jwt.sign).toHaveBeenCalledWith({ id: userId }, process.env.JWT_SECRET, {
+                expiresIn: process.env.JWT_EXPIRE
+            });
+            expect(res.status).toHaveBeenCalledWith(201);
+            expect(res.json).toHaveBeenCalledWith({
+                _id: userId,
+                name: userData.name,
+                email: userData.email,
+                token: mockToken
+            });
+        });
+
+        it('should return 400 if required fields are missing', async () => {
+            // Arrange - missing email
+            req.body = {
+                name: 'Test User',
+                password: 'password123'
+            };
+
+            // Act & Assert
+            await expect(userController.registerUser(req, res)).rejects.toThrow('Please provide all required fields');
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(User.create).not.toHaveBeenCalled();
+        });
+
+        it('should return 400 if user already exists', async () => {
+            // Arrange
+            const userData = {
+                name: 'Test User',
+                email: 'test@example.com',
+                password: 'password123'
+            };
+
+            req.body = userData;
+
+            User.findOne.mockResolvedValue({ _id: 'existing-user' }); // User already exists
+
+            // Act & Assert
+            await expect(userController.registerUser(req, res)).rejects.toThrow('User already exists');
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(User.create).not.toHaveBeenCalled();
+        });
+
+        it('should handle case when user creation fails', async () => {
+            // Arrange
+            const userData = {
+                name: 'Test User',
+                email: 'test@example.com',
+                password: 'password123'
+            };
+
+            req.body = userData;
+
+            User.findOne.mockResolvedValue(null); // User doesn't exist yet
+            User.create.mockResolvedValue(null); // Creation fails
+
+            // Act & Assert
+            await expect(userController.registerUser(req, res)).rejects.toThrow('Invalid user data');
+            expect(res.status).toHaveBeenCalledWith(400);
+        });
+    });
+
+    describe('loginUser', () => {
+        it('should login user with valid credentials', async () => {
+            // Arrange
+            const userData = {
+                email: 'test@example.com',
+                password: 'password123'
+            };
+
+            req.body = userData;
+
+            const foundUser = {
+                _id: userId,
+                name: 'Test User',
+                email: userData.email,
+                matchPassword: jest.fn().mockResolvedValue(true)
+            };
+
+            User.findOne.mockResolvedValue(foundUser);
+
+            // Act
+            await userController.loginUser(req, res);
+
+            // Assert
+            expect(User.findOne).toHaveBeenCalledWith({ email: userData.email });
+            expect(foundUser.matchPassword).toHaveBeenCalledWith(userData.password);
+            expect(jwt.sign).toHaveBeenCalledWith({ id: userId }, process.env.JWT_SECRET, {
+                expiresIn: process.env.JWT_EXPIRE
+            });
+            expect(res.json).toHaveBeenCalledWith({
+                _id: userId,
+                name: 'Test User',
+                email: userData.email,
+                token: mockToken
+            });
+        });
+
+        it('should return 401 if email is not found', async () => {
+            // Arrange
+            req.body = {
+                email: 'nonexistent@example.com',
+                password: 'password123'
+            };
+
+            User.findOne.mockResolvedValue(null); // User not found
+
+            // Act & Assert
+            await expect(userController.loginUser(req, res)).rejects.toThrow('Invalid email or password');
+            expect(res.status).toHaveBeenCalledWith(401);
+        });
+
+        it('should return 401 if password does not match', async () => {
+            // Arrange
+            req.body = {
+                email: 'test@example.com',
+                password: 'wrongpassword'
+            };
+
+            const foundUser = {
+                _id: userId,
+                name: 'Test User',
+                email: req.body.email,
+                matchPassword: jest.fn().mockResolvedValue(false) // Password doesn't match
+            };
+
+            User.findOne.mockResolvedValue(foundUser);
+
+            // Act & Assert
+            await expect(userController.loginUser(req, res)).rejects.toThrow('Invalid email or password');
+            expect(res.status).toHaveBeenCalledWith(401);
+        });
+    });
+
+    describe('getUserProfile', () => {
+        it('should return user profile for authenticated user', async () => {
+            // Arrange
+            const foundUser = {
+                _id: userId,
+                name: 'Test User',
+                email: 'test@example.com'
+            };
+
+            User.findById.mockResolvedValue(foundUser);
+
+            // Act
+            await userController.getUserProfile(req, res);
+
+            // Assert
+            expect(User.findById).toHaveBeenCalledWith(userId);
+            expect(res.json).toHaveBeenCalledWith({
+                _id: userId,
+                name: 'Test User',
+                email: 'test@example.com'
+            });
+        });
+
+        it('should return 404 if user not found', async () => {
+            // Arrange
+            User.findById.mockResolvedValue(null);
+
+            // Act & Assert
+            await expect(userController.getUserProfile(req, res)).rejects.toThrow('User not found');
+            expect(res.status).toHaveBeenCalledWith(404);
+        });
+    });
+
+    describe('updateUserProfile', () => {
+        it('should update user profile with all fields', async () => {
+            // Arrange
+            const updateData = {
+                name: 'Updated Name',
+                email: 'updated@example.com',
+                password: 'newpassword123'
+            };
+
+            req.body = updateData;
+
+            const existingUser = {
+                _id: userId,
+                name: 'Test User',
+                email: 'test@example.com',
+                save: jest.fn().mockResolvedValue({
+                    _id: userId,
+                    name: updateData.name,
+                    email: updateData.email
+                })
+            };
+
+            User.findById.mockResolvedValue(existingUser);
+
+            // Act
+            await userController.updateUserProfile(req, res);
+
+            // Assert
+            expect(User.findById).toHaveBeenCalledWith(userId);
+            expect(existingUser.name).toBe(updateData.name);
+            expect(existingUser.email).toBe(updateData.email);
+            expect(existingUser.password).toBe(updateData.password);
+            expect(existingUser.save).toHaveBeenCalled();
+            expect(jwt.sign).toHaveBeenCalledWith({ id: userId }, process.env.JWT_SECRET, {
+                expiresIn: process.env.JWT_EXPIRE
+            });
+            expect(res.json).toHaveBeenCalledWith({
+                _id: userId,
+                name: updateData.name,
+                email: updateData.email,
+                token: mockToken
+            });
+        });
+
+        it('should update user profile without password', async () => {
+            // Arrange
+            const updateData = {
+                name: 'Updated Name',
+                email: 'updated@example.com'
+            };
+
+            req.body = updateData;
+
+            const existingUser = {
+                _id: userId,
+                name: 'Test User',
+                email: 'test@example.com',
+                save: jest.fn().mockResolvedValue({
+                    _id: userId,
+                    name: updateData.name,
+                    email: updateData.email
+                })
+            };
+
+            User.findById.mockResolvedValue(existingUser);
+
+            // Act
+            await userController.updateUserProfile(req, res);
+
+            // Assert
+            expect(User.findById).toHaveBeenCalledWith(userId);
+            expect(existingUser.name).toBe(updateData.name);
+            expect(existingUser.email).toBe(updateData.email);
+            expect(existingUser.password).toBeUndefined();
+            expect(existingUser.save).toHaveBeenCalled();
+        });
+
+        it('should keep existing fields if not provided in update', async () => {
+            // Arrange
+            const updateData = {
+                name: 'Updated Name'
+                // email not provided
+            };
+
+            req.body = updateData;
+
+            const existingUser = {
+                _id: userId,
+                name: 'Test User',
+                email: 'test@example.com',
+                save: jest.fn().mockResolvedValue({
+                    _id: userId,
+                    name: updateData.name,
+                    email: 'test@example.com'
+                })
+            };
+
+            User.findById.mockResolvedValue(existingUser);
+
+            // Act
+            await userController.updateUserProfile(req, res);
+
+            // Assert
+            expect(existingUser.name).toBe(updateData.name);
+            expect(existingUser.email).toBe('test@example.com'); // Should be unchanged
+        });
+
+        it('should return 404 if user not found', async () => {
+            // Arrange
+            User.findById.mockResolvedValue(null);
+
+            // Act & Assert
+            await expect(userController.updateUserProfile(req, res)).rejects.toThrow('User not found');
+            expect(res.status).toHaveBeenCalledWith(404);
+        });
+    });
+
+    describe('getUsersFromToken', () => {
+        it('should get user info from a valid token', async () => {
+            // Arrange
+            const decodedToken = { id: userId };
+            jwt.verify.mockReturnValue(decodedToken);
+
+            const foundUser = {
+                _id: userId,
+                name: 'Test User',
+                email: 'test@example.com'
+            };
+
+            User.findById.mockResolvedValue(foundUser);
+
+            // Act
+            await userController.getUsersFromToken(req, res);
+
+            // Assert
+            expect(jwt.verify).toHaveBeenCalledWith(mockToken, process.env.JWT_SECRET);
+            expect(User.findById).toHaveBeenCalledWith(userId);
+            expect(res.json).toHaveBeenCalledWith({
+                _id: userId,
+                name: 'Test User',
+                email: 'test@example.com'
+            });
+        });
+
+        it('should return 404 if user not found from token', async () => {
+            // Arrange
+            const decodedToken = { id: userId };
+            jwt.verify.mockReturnValue(decodedToken);
+            User.findById.mockResolvedValue(null);
+
+            // Act & Assert
+            await expect(userController.getUsersFromToken(req, res)).rejects.toThrow('User not found');
+            expect(res.status).toHaveBeenCalledWith(404);
+        });
+
+        it('should handle invalid token format', async () => {
+            // Arrange - bad token format in header
+            req.headers.authorization = 'InvalidFormat';
+
+            // Act & Assert
+            await expect(userController.getUsersFromToken(req, res)).rejects.toThrow();
+        });
+
+        it('should handle jwt verification errors', async () => {
+            // Arrange
+            jwt.verify.mockImplementation(() => {
+                throw new Error('Invalid token');
+            });
+
+            // Act & Assert
+            await expect(userController.getUsersFromToken(req, res)).rejects.toThrow('Invalid token');
+        });
+    });
+
+    describe('generateToken', () => {
+        it('should generate a JWT token with correct parameters', () => {
+            // Call the exported function directly
+            userController.generateToken(userId);
+
+            expect(jwt.sign).toHaveBeenCalledWith(
+                { id: userId },
+                process.env.JWT_SECRET,
+                { expiresIn: process.env.JWT_EXPIRE }
+            );
+        });
     });
 });
