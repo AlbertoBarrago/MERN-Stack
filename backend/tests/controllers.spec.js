@@ -22,7 +22,6 @@ jest.mock('../models/itemModel', () => {
         }
     };
 });
-
 jest.mock('jsonwebtoken');
 jest.mock('../models/userModel');
 
@@ -258,8 +257,6 @@ describe('Item Controller', () => {
             expect(mockItem.deleteOne).toHaveBeenCalled();
             expect(res.json).toHaveBeenCalledWith({ message: 'Item removed' });
         });
-
-        // Add tests for item not found and unauthorized deletion
     });
 });
 
@@ -298,7 +295,6 @@ describe('User Controller', () => {
 
     describe('registerUser', () => {
         it('should register a new user successfully', async () => {
-            // Arrange
             const userData = {
                 name: 'Test User',
                 email: 'test@example.com',
@@ -335,7 +331,6 @@ describe('User Controller', () => {
         });
 
         it('should return 400 if required fields are missing', async () => {
-            // Arrange - missing email
             req.body = {
                 name: 'Test User',
                 password: 'password123'
@@ -348,7 +343,6 @@ describe('User Controller', () => {
         });
 
         it('should return 400 if user already exists', async () => {
-            // Arrange
             const userData = {
                 name: 'Test User',
                 email: 'test@example.com',
@@ -357,7 +351,7 @@ describe('User Controller', () => {
 
             req.body = userData;
 
-            User.findOne.mockResolvedValue({ _id: 'existing-user' }); // User already exists
+            User.findOne.mockResolvedValue({ _id: 'existing-user' });
 
             // Act & Assert
             await expect(userController.registerUser(req, res)).rejects.toThrow('User already exists');
@@ -366,7 +360,6 @@ describe('User Controller', () => {
         });
 
         it('should handle case when user creation fails', async () => {
-            // Arrange
             const userData = {
                 name: 'Test User',
                 email: 'test@example.com',
@@ -386,7 +379,6 @@ describe('User Controller', () => {
 
     describe('loginUser', () => {
         it('should login user with valid credentials', async () => {
-            // Arrange
             const userData = {
                 email: 'test@example.com',
                 password: 'password123'
@@ -421,7 +413,6 @@ describe('User Controller', () => {
         });
 
         it('should return 401 if email is not found', async () => {
-            // Arrange
             req.body = {
                 email: 'nonexistent@example.com',
                 password: 'password123'
@@ -435,7 +426,6 @@ describe('User Controller', () => {
         });
 
         it('should return 401 if password does not match', async () => {
-            // Arrange
             req.body = {
                 email: 'test@example.com',
                 password: 'wrongpassword'
@@ -458,7 +448,6 @@ describe('User Controller', () => {
 
     describe('getUserProfile', () => {
         it('should return user profile for authenticated user', async () => {
-            // Arrange
             const foundUser = {
                 _id: userId,
                 name: 'Test User',
@@ -480,7 +469,7 @@ describe('User Controller', () => {
         });
 
         it('should return 404 if user not found', async () => {
-            // Arrange
+            //
             User.findById.mockResolvedValue(null);
 
             // Act & Assert
@@ -491,7 +480,6 @@ describe('User Controller', () => {
 
     describe('updateUserProfile', () => {
         it('should update user profile with all fields', async () => {
-            // Arrange
             const updateData = {
                 name: 'Updated Name',
                 email: 'updated@example.com',
@@ -534,7 +522,6 @@ describe('User Controller', () => {
         });
 
         it('should update user profile without password', async () => {
-            // Arrange
             const updateData = {
                 name: 'Updated Name',
                 email: 'updated@example.com'
@@ -567,7 +554,6 @@ describe('User Controller', () => {
         });
 
         it('should keep existing fields if not provided in update', async () => {
-            // Arrange
             const updateData = {
                 name: 'Updated Name'
                 // email not provided
@@ -597,7 +583,7 @@ describe('User Controller', () => {
         });
 
         it('should return 404 if user not found', async () => {
-            // Arrange
+            //
             User.findById.mockResolvedValue(null);
 
             // Act & Assert
@@ -608,7 +594,6 @@ describe('User Controller', () => {
 
     describe('getUsersFromToken', () => {
         it('should get user info from a valid token', async () => {
-            // Arrange
             const decodedToken = { id: userId };
             jwt.verify.mockReturnValue(decodedToken);
 
@@ -634,7 +619,7 @@ describe('User Controller', () => {
         });
 
         it('should return 404 if user not found from token', async () => {
-            // Arrange
+            //
             const decodedToken = { id: userId };
             jwt.verify.mockReturnValue(decodedToken);
             User.findById.mockResolvedValue(null);
@@ -645,7 +630,7 @@ describe('User Controller', () => {
         });
 
         it('should handle invalid token format', async () => {
-            // Arrange - bad token format in header
+            //  - bad token format in header
             req.headers.authorization = 'InvalidFormat';
 
             // Act & Assert
@@ -653,7 +638,6 @@ describe('User Controller', () => {
         });
 
         it('should handle jwt verification errors', async () => {
-            // Arrange
             jwt.verify.mockImplementation(() => {
                 throw new Error('Invalid token');
             });
@@ -665,7 +649,6 @@ describe('User Controller', () => {
 
     describe('generateToken', () => {
         it('should generate a JWT token with correct parameters', () => {
-            // Call the exported function directly
             userController.generateToken(userId);
 
             expect(jwt.sign).toHaveBeenCalledWith(

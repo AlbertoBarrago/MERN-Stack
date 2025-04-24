@@ -13,9 +13,6 @@ module.exports = {
         'config/**/*.test.js',
         'controllers/**/*.js',
         'middleware/**/*.js',
-        'models/**/*.js',
-        'routes/**/*.js',
-        'utils/**/*.js',
         '!**/node_modules/**',
         '!**/tests/**'
     ],
