@@ -64,6 +64,7 @@ A simple CRUD application built with the MERN stack (MongoDB, Express, React, No
    PORT=5000
    MONGO_URI=mongodb://localhost:27017/mern-blueprint
    JWT_SECRET=your_jwt_secret
+   JWT_EXPIRES_IN=30d
    ```
 
 4. Start the server:
@@ -92,6 +93,14 @@ A simple CRUD application built with the MERN stack (MongoDB, Express, React, No
    ```
    npm start
    ```
+   
+## Proxy Configuration
+
+> - Avoiding CORS Issues: It helps avoid Cross-Origin Resource Sharing (CORS) issues during development.
+Since the requests appear to come from the same origin as the React app,
+you don't need to configure CORS on your backend during development.
+Simplified API Calls: It allows you to use relative paths in your API calls instead of absolute URLs.
+For example, you can use axios.post('/api/users/login') instead of axios.post('http://localhost:5000/api/users/login').
 
 ## Best Practices Implemented
 
