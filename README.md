@@ -31,7 +31,7 @@ A simple CRUD application built with the MERN stack (MongoDB, Express, React, No
 
 ## Features
 
-- RESTful API with Express
+- RESTFUL API with Express
 - MongoDB database with Mongoose ODM
 - React frontend with modern hooks
 - Complete CRUD operations
