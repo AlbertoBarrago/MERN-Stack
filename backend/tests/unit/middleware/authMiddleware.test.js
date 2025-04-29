@@ -7,6 +7,14 @@ jest.mock('jsonwebtoken');
 jest.mock('../../../models/userModel');
 
 describe('Auth Middleware', () => {
+    beforeAll(() => {
+        process.env.NODE_ENV = 'test';
+        process.env.TEST_MIDDLEWARE = 'true';
+    });
+
+    afterAll(() => {
+        delete process.env.TEST_MIDDLEWARE;
+    });
     let req, res, next;
     const userId = 'user123';
     const mockToken = 'test-token';

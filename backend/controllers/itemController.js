@@ -103,7 +103,7 @@ const updateItem = asyncHandler(async (req, res) => {
         throw new Error('Item not found');
     }
 
-    // Check if user is the item owner
+    // Check if the user is the item owner
     if (item.user.toString() !== req.user._id.toString()) {
         res.status(401);
         throw new Error('Not authorized to update this item');
@@ -139,7 +139,7 @@ const deleteItem = asyncHandler(async (req, res) => {
     }
 
     await item.deleteOne();
-    res.status(200).json({ message: 'Item removed' });
+    res.status(200).json({ message: 'Item removed', id: req.params.id  });
 });
 
 module.exports = {

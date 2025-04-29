@@ -251,7 +251,7 @@ describe('Item Controller', () => {
 
             expect(Item.findById).toHaveBeenCalledWith(itemId);
             expect(mockItem.deleteOne).toHaveBeenCalled();
-            expect(res.json).toHaveBeenCalledWith({ message: 'Item removed' });
+            expect(res.json).toHaveBeenCalledWith({ message: 'Item removed',  id: "item123", });
         });
     });
 });
