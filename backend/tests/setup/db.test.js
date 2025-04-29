@@ -7,30 +7,48 @@ let mongoServer;
  * Connect to the in-memory database.
  */
 const connectDB = async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
+    try {
+        mongoServer = await MongoMemoryServer.create();
+        const mongoUri = mongoServer.getUri();
 
-    await mongoose.connect(uri);
+        // Set connection options
+        const mongooseOpts = {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        };
+
+        await mongoose.connect(mongoUri, mongooseOpts);
+
+        console.log('MongoDB Memory Server Connected');
+        return mongoose.connection;
+    } catch (error) {
+        console.error(`Error: ${error.message}`);
+        throw error;
+    }
 };
 
 /**
- * Drop a database, close the connection and stop mongod.
+ * Drop a database, close the connection and stop mongodb.
  */
 const closeDatabase = async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-    await mongoServer.stop();
+    if (mongoServer) {
+        await mongoose.connection.dropDatabase();
+        await mongoose.connection.close();
+        await mongoServer.stop();
+    }
 };
 
 /**
- * Remove all the data for all db collections.
+ * Clear all collections from the database
  */
 const clearDatabase = async () => {
-    const collections = mongoose.connection.collections;
+    if (mongoServer) {
+        const collections = mongoose.connection.collections;
 
-    for (const key in collections) {
-        const collection = collections[key];
-        await collection.deleteMany({});
+        for (const key in collections) {
+            const collection = collections[key];
+            await collection.deleteMany({});
+        }
     }
 };
 

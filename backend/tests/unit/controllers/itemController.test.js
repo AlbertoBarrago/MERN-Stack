@@ -1,6 +1,5 @@
 const itemController = require('../../../controllers/itemController');
 const Item = require('../../../models/itemModel');
-const { connectDB, closeDatabase, clearDatabase } = require('../../setup/db.test');
 
 jest.mock('../../../models/itemModel', () => {
     const mockSort = jest.fn().mockResolvedValue([]);
@@ -24,18 +23,6 @@ jest.mock('jsonwebtoken');
 
 describe('Item Controller', () => {
     let req, res, next;
-
-    beforeAll(async () => {
-        await connectDB();
-    });
-
-    afterEach(async () => {
-        await clearDatabase();
-    });
-
-    afterAll(async () => {
-        await closeDatabase();
-    });
 
 
     beforeEach(() => {

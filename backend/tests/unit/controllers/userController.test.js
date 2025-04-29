@@ -1,25 +1,12 @@
 const userController = require('../../../controllers/userController');
 const User = require('../../../models/userModel');
 const jwt = require('jsonwebtoken');
-const { connectDB, closeDatabase, clearDatabase } = require('../../setup/db.test');
 
 jest.mock('../../../models/userModel');
 jest.mock('jsonwebtoken');
 
 describe('User Controller', () => {
     let req, res, next;
-
-    beforeAll(async () => {
-        await connectDB();
-    });
-
-    afterEach(async () => {
-        await clearDatabase();
-    });
-
-    afterAll(async () => {
-        await closeDatabase();
-    });
 
     beforeEach(() => {
         jest.clearAllMocks();

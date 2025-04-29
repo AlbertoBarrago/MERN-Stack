@@ -3,18 +3,19 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const morgan = require('morgan');
 const connectDB = require('./config/db');
-const { errorHandler } = require('./middleware/errorMiddleware');
+const {errorHandler} = require('./middleware/errorMiddleware');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const options = require('./swagger.js')
 
 // Load environment variables
-dotenv.config({ path: __dirname + '/.env' });
+dotenv.config({path: __dirname + '/.env'});
 
 // Connect to database
-connectDB().then(()=>{
-    console.log('Database connected');
-});
+if (process.env.NODE_ENV !== 'test')
+    connectDB().then(() => {
+        console.log('Database connected');
+    });
 
 const app = express();
 
@@ -28,7 +29,7 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({extended: false}));
 
 // Logger
 if (process.env.NODE_ENV === 'development') {
@@ -41,7 +42,7 @@ app.use('/api/users', require('./routes/userRoutes'));
 
 // Welcome route
 app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to MERN Blueprint API' });
+    res.json({message: 'Welcome to MERN Blueprint API'});
 });
 
 

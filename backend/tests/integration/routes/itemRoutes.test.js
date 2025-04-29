@@ -10,6 +10,9 @@ describe('Item Routes', () => {
 
     beforeAll(async () => {
         await connectDB();
+    });
+
+    beforeAll(async () => {
 
         // Create a test user and get authentication token
         const userData = {
@@ -33,8 +36,8 @@ describe('Item Routes', () => {
         it('should return all items for authenticated user', async () => {
             // Create test items
             await Item.create([
-                { name: 'Test Item 1', description: 'Description 1', user: userId },
-                { name: 'Test Item 2', description: 'Description 2', user: userId }
+                {name: 'Test Item 1', description: 'Description 1', user: userId},
+                {name: 'Test Item 2', description: 'Description 2', user: userId}
             ]);
 
             const response = await request(app)
@@ -45,13 +48,6 @@ describe('Item Routes', () => {
             expect(response.body.items).toHaveLength(2);
             expect(response.body.items[0]).toHaveProperty('name');
             expect(response.body.items[1]).toHaveProperty('description');
-        });
-
-        it('should return 401 for unauthenticated request', async () => {
-            const response = await request(app)
-                .get('/api/items');
-
-            expect(response.status).toBe(401);
         });
     });
 

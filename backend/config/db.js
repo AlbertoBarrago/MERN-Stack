@@ -7,6 +7,11 @@ const connectDB = async () => {
             ? process.env.TEST_MONGO_URI
             : process.env.MONGO_URI;
 
+        if (process.env.NODE_ENV === 'test') {
+            console.log('Test environment detected - skipping main DB connection');
+            return null;
+        }
+
         const conn = await mongoose.connect(mongoURI);
 
         console.log(`MongoDB Connected: ${conn.connection.host}`);

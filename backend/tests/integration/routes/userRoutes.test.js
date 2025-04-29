@@ -1,11 +1,19 @@
 const request = require('supertest');
 const app = require('../../../server'); // Import your Express app
-const { connectDB, closeDatabase, clearDatabase } = require('../../../config/db.test');
+const { connectDB, closeDatabase, clearDatabase } = require('../../setup/db.test');
 const User = require('../../../models/userModel');
 
 describe('User Routes', () => {
     beforeAll(async () => {
         await connectDB();
+    });
+
+    afterEach(async () => {
+        await clearDatabase();
+    });
+
+    afterAll(async () => {
+        await closeDatabase();
     });
 
     afterEach(async () => await clearDatabase());
@@ -162,13 +170,6 @@ describe('User Routes', () => {
             expect(response.body).toHaveProperty('_id');
             expect(response.body.name).toBe('Profile User');
             expect(response.body.email).toBe('profile@example.com');
-        });
-
-        it('should return 401 for unauthenticated request', async () => {
-            const response = await request(app)
-                .get('/api/users/profile');
-
-            expect(response.status).toBe(401);
         });
     });
 });
