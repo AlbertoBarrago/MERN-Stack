@@ -47,8 +47,7 @@ const registerUser = asyncHandler(async (req, res) => {
             token: generateToken(user._id),
         });
     } else {
-        res.status(400);
-        throw new Error('Invalid user data');
+        res.status(400).json({ message: 'Invalid user data' });
     }
 });
 
@@ -86,7 +85,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id);
 
     if (user) {
-        res.json({
+        res.status(200).json({
             _id: user._id,
             name: user.name,
             email: user.email,
@@ -115,7 +114,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
         const updatedUser = await user.save();
 
-        res.json({
+        res.status(200).json({
             _id: updatedUser._id,
             name: updatedUser.name,
             email: updatedUser.email,

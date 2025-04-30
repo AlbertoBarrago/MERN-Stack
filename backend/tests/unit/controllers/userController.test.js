@@ -150,4 +150,106 @@ describe('User Controller', () => {
             expect(res.status).toHaveBeenCalledWith(401);
         });
     });
+    
+    describe('getProfileUser', () => {
+        it('should retrieve a user profile', async () => {
+            const mockUser = {
+                _id: 'user123',
+                name: 'Test User',
+                email: 'test@example.com'
+            };
+
+            req.user = { _id: 'user123' };
+
+            User.findById = jest.fn().mockResolvedValue(mockUser);
+
+            // Call the function
+            await userController.getUserProfile(req, res);
+
+            // Check expectations
+            expect(User.findById).toHaveBeenCalledWith('user123');
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(mockUser);
+        });
+
+        it('should return 404 if not found user', async () => {
+            req.user = { _id: 'user127' };
+            User.findById = jest.fn().mockResolvedValue(null);
+            await expect(userController.getUserProfile(req, res)).rejects.toThrow('User not found');
+            expect(res.status).toHaveBeenCalledWith(404);
+        })
+    });
+
+    describe('updateUserProfile', () => {
+        xit('should update user profile successfully', async () => {
+            const originalGenerateToken = userController.generateToken;
+            userController.generateToken = jest.fn().mockReturnValue('new-test-token');
+
+            // Initial user data
+            const existingUser = {
+                _id: 'user123',
+                name: 'Original Name',
+                email: 'original@example.com',
+                password: 'hashedpassword',
+                save: jest.fn().mockResolvedValue({
+                    _id: 'user123',
+                    name: 'New Name',
+                    email: 'new@example.com',
+                    password: 'newhashed'
+                })
+            };
+
+            // Mock the User.findById to return the existing user
+            User.findById.mockResolvedValue(existingUser);
+
+            // Set up request
+            req.user = { _id: 'user123' };
+            req.body = {
+                name: 'New Name',
+                email: 'new@example.com',
+                password: 'newpassword123'
+            };
+
+            // Call the function
+            await userController.updateUserProfile(req, res);
+
+            // Check if the user properties were updated correctly
+            expect(existingUser.name).toBe('New Name');
+            expect(existingUser.email).toBe('new@example.com');
+            expect(existingUser.password).toBe('newpassword123');
+
+            // Check if save was called
+            expect(existingUser.save).toHaveBeenCalled();
+
+            // Check if generateToken was called with the correct ID
+            expect(userController.generateToken).toHaveBeenCalledWith('user123');
+
+            // Check response
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith({
+                _id: 'user123',
+                name: 'New Name',
+                email: 'new@example.com',
+                token: 'new-test-token'
+            });
+
+            // Restore the original function after the test
+            userController.generateToken = originalGenerateToken;
+        });
+
+        it('should return 404 if user not found', async () => {
+            // Mock User.findById to return null (user not found)
+            User.findById.mockResolvedValue(null);
+
+            // Set up request
+            req.user = { _id: 'nonexistentuser' };
+            req.body = { name: 'New Name' };
+
+            // Call and expect error
+            await expect(userController.updateUserProfile(req, res)).rejects.toThrow('User not found');
+
+            expect(User.findById).toHaveBeenCalledWith('nonexistentuser');
+            expect(res.status).toHaveBeenCalledWith(404);
+        });
+    });
 });
