@@ -1,6 +1,6 @@
 const request = require('supertest');
-const app = require('../../../server'); // Import your Express app
-const { connectDB, closeDatabase, clearDatabase } = require('../../setup/db.test');
+const {app, closeServer} = require('../../../server'); // Import your Express app
+const { connectDB, closeDatabase, clearDatabase } = require('../../setup/db');
 const User = require('../../../models/userModel');
 
 describe('User Routes', () => {
@@ -14,10 +14,8 @@ describe('User Routes', () => {
 
     afterAll(async () => {
         await closeDatabase();
+        closeServer();
     });
-
-    afterEach(async () => await clearDatabase());
-    afterAll(async () => await closeDatabase());
 
     describe('POST /api/users/register', () => {
         it('should register a new user', async () => {

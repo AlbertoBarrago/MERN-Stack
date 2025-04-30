@@ -10,9 +10,7 @@ module.exports = {
     collectCoverage: true,
     coverageDirectory: 'coverage',
     collectCoverageFrom: [
-        'config/**/*.test.js',
-        'controllers/**/*.js',
-        'middleware/**/*.js',
+        'tests/**/*.test.js',
         '!**/node_modules/**',
         '!**/tests/**'
     ],

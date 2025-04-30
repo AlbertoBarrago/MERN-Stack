@@ -1,6 +1,6 @@
 const request = require('supertest');
-const app = require('../../../server'); // Import your Express app
-const { connectDB, closeDatabase, clearDatabase } = require('../../setup/db.test');
+const { app, closeServer } = require('../../../server');
+const { connectDB, closeDatabase, clearDatabase } = require('../../setup/db');
 const Item = require('../../../models/itemModel');
 const User = require('../../../models/userModel');
 
@@ -16,7 +16,10 @@ describe('Item Routes', () => {
     });
 
     afterEach(async () => await clearDatabase());
-    afterAll(async () => await closeDatabase());
+    afterAll(async () => {
+        await closeDatabase()
+        closeServer()
+    });
 
     describe('GET /api/items', () => {
         it('should return all items for authenticated user', async () => {

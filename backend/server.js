@@ -55,16 +55,33 @@ app.use(errorHandler);
 // Start server
 const PORT = process.env.PORT || 5001;
 
-// Add error handling for server startup
-const server = app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-}).on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-        console.error(`Port ${PORT} is already in use. Try using a different port.`);
-        process.exit(1);
-    } else {
-        console.error('Server error:', err);
-    }
-});
+let serverInstance = null;
 
-module.exports = app;
+const startServer = () => {
+    const PORT = process.env.PORT || 5001;
+    serverInstance = app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    }).on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            console.error(`Port ${PORT} is already in use. Try using a different port.`);
+            process.exit(1);
+        } else {
+            console.error('Server error:', err);
+        }
+    });
+    return serverInstance;
+};
+
+const closeServer = () => {
+    if (serverInstance) {
+        serverInstance.close();
+        serverInstance = null;
+    }
+};
+
+if (require.main === module) {
+    startServer();
+}
+
+module.exports = { app, startServer, closeServer };
+
