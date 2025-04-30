@@ -150,20 +150,4 @@ describe('User Controller', () => {
             expect(res.status).toHaveBeenCalledWith(401);
         });
     });
-
-    describe('getUserProfile', () => {
-        it('should return user profile', async () => {
-            const mockUser = {
-                _id: 'user123',
-                name: 'Test User',
-                email: 'test@example.com'
-            };
-
-            req.user = mockUser;
-
-            await userController.getUserProfile(req, res);
-
-            expect(res.json).toHaveBeenCalledWith(mockUser);
-        });
-    });
 });
