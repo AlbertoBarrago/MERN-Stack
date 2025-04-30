@@ -1,6 +1,9 @@
 module.exports = {
     testEnvironment: 'node',
-    testMatch: ['**/tests/**/*.test.js', '**/tests/**/*.js'],
+    testMatch: [
+        '**/tests/unit/**/*.test.js',
+        '**/tests/integration/**/*.test.js'
+    ],
     verbose: true,
     forceExit: true,
     clearMocks: true,
@@ -10,9 +13,12 @@ module.exports = {
     collectCoverage: true,
     coverageDirectory: 'coverage',
     collectCoverageFrom: [
-        'tests/**/*.test.js',
-        '!**/node_modules/**',
-        '!**/tests/**'
+        'controllers/**/*.js',
+        'models/**/*.js',
+        'middleware/**/*.js',
+        'routes/**/*.js',
+        'utils/**/*.js',
+        '!**/node_modules/**'
     ],
     coverageReporters: ['text', 'lcov', 'clover', 'html'],
     coverageThreshold: {

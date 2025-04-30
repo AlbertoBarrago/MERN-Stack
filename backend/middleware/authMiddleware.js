@@ -6,7 +6,7 @@ const User = require('../models/userModel');
  * Middleware to protect routes that require authentication
  */
 const protect = asyncHandler(async (req, res, next) => {
-    // Skip token verification in test environment except for middleware tests
+    // Skip token verification in the test environment except for middleware tests
     if (process.env.NODE_ENV === 'test' && !process.env.TEST_MIDDLEWARE) {
         req.user = { _id: '746573742d757365722d6964' };
         return next();
@@ -29,8 +29,7 @@ const protect = asyncHandler(async (req, res, next) => {
             next();
         } catch (error) {
             console.error(error);
-            res.status(401);
-            throw new Error('Not authorized, token failed');
+            return res.status(401).json({ message: 'Not authorized, token failed' });
         }
     }
 
