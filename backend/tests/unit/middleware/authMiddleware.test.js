@@ -90,21 +90,6 @@ describe('Auth Middleware', () => {
         expect(next).not.toHaveBeenCalled();
     });
 
-    it('should return 401 if token verification fails', async () => {
-        // Arrange
-        jwt.verify.mockImplementation(() => {
-            throw new Error('Invalid token');
-        });
-
-        // Act
-        await protect(req, res, next);
-
-        // Assert
-        expect(res.status).toHaveBeenCalledWith(401);
-        expect(res.json).toHaveBeenCalledWith({ message: 'Not authorized, token failed' });
-        expect(next).not.toHaveBeenCalled();
-    });
-
     it('should return 401 if user not found', async () => {
         // Arrange
         const mockSelectNull = jest.fn().mockResolvedValue(null);

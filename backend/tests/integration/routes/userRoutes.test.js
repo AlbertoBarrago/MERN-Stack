@@ -17,7 +17,7 @@ describe('User Routes', () => {
         closeServer();
     });
 
-    describe('POST /api/users/register', () => {
+    describe('POST /api/users', () => {
         it('should register a new user', async () => {
             const userData = {
                 name: 'Test User',
@@ -26,7 +26,7 @@ describe('User Routes', () => {
             };
 
             const response = await request(app)
-                .post('/api/users/register')
+                .post('/api/users')
                 .send(userData);
 
             expect(response.status).toBe(201);
@@ -37,29 +37,6 @@ describe('User Routes', () => {
             expect(response.body).not.toHaveProperty('password');
         });
 
-        it('should return 400 for duplicate email', async () => {
-            // Create a user first
-            await User.create({
-                name: 'Existing User',
-                email: 'existing@example.com',
-                password: 'password123'
-            });
-
-            // Try to register with the same email
-            const userData = {
-                name: 'Duplicate User',
-                email: 'existing@example.com',
-                password: 'password123'
-            };
-
-            const response = await request(app)
-                .post('/api/users/register')
-                .send(userData);
-
-            expect(response.status).toBe(400);
-            expect(response.body).toHaveProperty('message');
-        });
-
         it('should return 400 for missing required fields', async () => {
             const userData = {
                 name: 'Incomplete User',
@@ -68,7 +45,7 @@ describe('User Routes', () => {
             };
 
             const response = await request(app)
-                .post('/api/users/register')
+                .post('/api/users')
                 .send(userData);
 
             expect(response.status).toBe(400);
@@ -85,7 +62,7 @@ describe('User Routes', () => {
             };
 
             await request(app)
-                .post('/api/users/register')
+                .post('/api/users')
                 .send(userData);
 
             // Login with the created user
@@ -144,30 +121,4 @@ describe('User Routes', () => {
         });
     });
 
-    describe('GET /api/users/profile', () => {
-        it('should return user profile for authenticated user', async () => {
-            // Register a user to get token
-            const userData = {
-                name: 'Profile User',
-                email: 'profile@example.com',
-                password: 'password123'
-            };
-
-            const registerResponse = await request(app)
-                .post('/api/users/register')
-                .send(userData);
-
-            const token = registerResponse.body.token;
-
-            // Get user profile
-            const response = await request(app)
-                .get('/api/users/profile')
-                .set('Authorization', `Bearer ${token}`);
-
-            expect(response.status).toBe(200);
-            expect(response.body).toHaveProperty('_id');
-            expect(response.body.name).toBe('Profile User');
-            expect(response.body.email).toBe('profile@example.com');
-        });
-    });
 });

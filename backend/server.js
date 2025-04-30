@@ -52,9 +52,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 // Error handler
 app.use(errorHandler);
 
-// Start server
-const PORT = process.env.PORT || 5001;
-
 let serverInstance = null;
 
 const startServer = () => {
@@ -79,6 +76,7 @@ const closeServer = () => {
     }
 };
 
+// Start just for main
 if (require.main === module) {
     startServer();
 }
